@@ -79,9 +79,14 @@ export function getReasons (reasonInputs) {
 }
 
 export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonAlert, snackbar) {
+  let savedInputs = JSON.parse(localStorage.getItem('covidFormInputs'))
   formInputs.forEach((input) => {
     const exempleElt = input.parentNode.parentNode.querySelector('.exemple')
     const validitySpan = input.parentNode.parentNode.querySelector('.validity')
+    if(savedInputs && savedInputs[input.name] && input.name !== "datesortie" && input.name !== "heuresortie") {
+      input.value = savedInputs[input.name]
+    }
+    // set cached value
     if (input.placeholder && exempleElt) {
       input.addEventListener('input', (event) => {
         if (input.value) {
@@ -104,6 +109,10 @@ export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonA
   })
 
   reasonInputs.forEach(radioInput => {
+    // set cached value
+    if (localStorage.getItem('covidreasons') && radioInput.value === localStorage.getItem('covidreasons')) {
+      radioInput.checked = true;
+    }
     radioInput.addEventListener('change', function (event) {
       const isInError = reasonInputs.every(input => !input.checked)
       reasonFieldset.classList.toggle('fieldset-error', isInError)
@@ -126,8 +135,9 @@ export function prepareInputs (formInputs, reasonInputs, reasonFieldset, reasonA
     if (invalid) {
       return
     }
+    localStorage.setItem('covidFormInputs', JSON.stringify(getProfile(formInputs)))
+    localStorage.setItem('covidreasons', reasons)
 
-    console.log(getProfile(formInputs), reasons)
 
     const pdfBlob = await generatePdf(getProfile(formInputs), reasons, pdfBase)
 
